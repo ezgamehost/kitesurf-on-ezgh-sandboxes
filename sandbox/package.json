@@ -1,0 +1,9 @@
+{
+  "name": "kitesurf-sandbox",
+  "private": true,
+  "type": "module",
+  "description": "Keep miniflare on the version Kitesurf's pnpm-lock.yaml pins at KITESURF_REF.",
+  "dependencies": {
+    "miniflare": "5.20260911.1-alpha"
+  }
+}

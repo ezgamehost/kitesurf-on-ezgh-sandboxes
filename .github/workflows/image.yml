@@ -1,0 +1,67 @@
+name: Image
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      id-token: write # setup-ezgh exchanges the job's OIDC token for a short-lived bot key
+    steps:
+      - uses: actions/checkout@v4
+
+      # A cold Bazel build of Kitesurf needs more room than the runner leaves free.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup \
+            /opt/hostedtoolcache/CodeQL /usr/share/swift
+          df -h /
+
+      - uses: docker/setup-buildx-action@v3
+      - name: Build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: kitesurf:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Smoke test (screenshot through the bridge)
+        run: |
+          docker run -d --name kitesurf kitesurf:ci
+          cd client && npm ci
+          KITESURF_BRIDGE="docker exec -i kitesurf" node screenshot.mjs - https://example.com/ /tmp/page.png
+          test -s /tmp/page.png
+      - name: Engine log
+        if: failure()
+        run: docker exec kitesurf cat /tmp/kitesurf.log || true
+
+      # Pushing needs the repository variables EZGH_ORG, EZGH_BOT and EZGH_REGISTRY (see README).
+      - if: github.ref == 'refs/heads/main' && vars.EZGH_BOT != ''
+        uses: ezgamehost/setup-ezgh@v1
+        with:
+          org: ${{ vars.EZGH_ORG }}
+          bot: ${{ vars.EZGH_BOT }}
+      - name: Push to EZGH Container Registry
+        if: github.ref == 'refs/heads/main' && vars.EZGH_BOT != ''
+        env:
+          REPO: ${{ vars.EZGH_REGISTRY }}/samples/kitesurf
+        run: |
+          echo "$EZGH_API_KEY" | docker login "${{ vars.EZGH_REGISTRY }}" -u ezgh --password-stdin
+          for tag in "$GITHUB_SHA" latest; do
+            docker tag kitesurf:ci "$REPO:$tag"
+            docker push "$REPO:$tag"
+          done
