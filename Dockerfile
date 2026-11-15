@@ -26,6 +26,9 @@ RUN git init -q && git fetch -q --depth 1 https://github.com/cloudflare/kitesurf
 
 # ---- runtime ----
 FROM node:22-bookworm-slim
+# workerd verifies TLS against the system trust store, which the slim image leaves out.
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY sandbox/package.json sandbox/package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
