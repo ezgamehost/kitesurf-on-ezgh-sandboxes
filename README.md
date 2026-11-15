@@ -57,6 +57,8 @@ choose who can.
 | Idle | With no open connection for `--idle-seconds`, the sandbox suspends, keeping its memory. |
 | Next connection | Resumes it; the engine carries on where it was. The bridge waits up to 60 s for the engine. |
 | One per agent | Give each agent or job its own sandbox: separate VMs, cookies and page state. |
+| Page limits | Each page gets 20 s of CPU (`KITESURF_PAGE_CPU_MS_CAP`, in ms). Set `--env KITESURF_PAGE_CPU_MS_CAP=…` or `KITESURF_PAGE_WALL_MS_CAP` at create to change it. |
+| Stuck engine | One engine serves every connection in the sandbox. If it stops answering, `ezgh sandboxes stop kitesurf --wait && ezgh sandboxes start kitesurf --wait` restarts it. |
 
 Pages are untrusted code. They run inside the sandbox's VM, and their requests leave through the
 sandbox's outbound network. A sandbox created in a VPC subnet (`--subnet`) reaches that VPC, so
@@ -64,8 +66,8 @@ pages could too: keep browsers that load arbitrary sites out of VPCs that hold p
 
 ## Deploy
 
-You need the [`ezgh` CLI](https://docs.ezghcloud.com/cli/), signed in, and `SandboxesFullAccess`
-in the project.
+You need the [`ezgh` CLI](https://docs.ezghcloud.com/cli/) v0.66.0 or later, signed in, and
+`SandboxesFullAccess` in the project.
 
 1. **Get the image.** Use one built by this repository's CI, or build and push your own:
 

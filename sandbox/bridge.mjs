@@ -33,4 +33,4 @@ ws.onmessage = (event) => process.stdout.write(JSON.stringify(JSON.parse(event.d
 ws.onclose = () => process.exit(0);
 createInterface({ input: process.stdin })
   .on("line", (line) => line && ws.send(line))
-  .on("close", () => ws.close());
+  .on("close", () => process.exit(0)); // the client hung up: don't wait on a busy engine

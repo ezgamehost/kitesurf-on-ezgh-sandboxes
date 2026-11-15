@@ -51,6 +51,15 @@ const miniflare = new Miniflare(
         modulesRoot: DIST,
         modules: modules(),
         assets: options.assets && { ...options.assets, directory: ASSETS },
+        // KITESURF_PAGE_CPU_MS_CAP / KITESURF_PAGE_WALL_MS_CAP from the sandbox's env (--env).
+        // With Kitesurf's default (300 s) the engine wedged within a few loads; 20 s held up.
+        bindings: {
+          ...options.bindings,
+          KITESURF_PAGE_CPU_MS_CAP: "20000",
+          ...Object.fromEntries(
+            Object.entries(process.env).filter(([key]) => key.startsWith("KITESURF_PAGE_")),
+          ),
+        },
       },
     ],
   }),
