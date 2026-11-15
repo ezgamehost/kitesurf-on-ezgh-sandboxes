@@ -66,7 +66,7 @@ pages could too: keep browsers that load arbitrary sites out of VPCs that hold p
 
 ## Deploy
 
-You need the [`ezgh` CLI](https://docs.ezghcloud.com/cli/) v0.66.0 or later, signed in, and
+You need the [`ezgh` CLI](https://docs.ezghcloud.com/cli/) v0.66.1 or later, signed in, and
 `SandboxesFullAccess` in the project.
 
 1. **Get the image.** Use one built by this repository's CI, or build and push your own:
